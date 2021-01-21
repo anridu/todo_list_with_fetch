@@ -5,33 +5,63 @@ import PropTypes from "prop-types";
 import rigoImage from "../../img/rigo-baby.jpg";
 
 let TaskList = props => {
-	const [items, setItems] = useState(["task1", "task2"]);
+	const [items, setItems] = useState([]);
 	let [inputValue, setInputValue] = useState("");
 
-	// useEffect(
-	// 	// function(element) {
-	// 	// 	if (inputValue != "") {
-	// 	// 		);
-	// 	// 	}
-	// 	//},
-	// 	{},
-	// 	[items]
-	// );
-
+	useEffect(
+		() =>
+			// here i fetch my todos from the API
+			fetch("https://assets.breatheco.de/apis/fake/todos/user/Angel3")
+				.then(r => r.json())
+				.then(data => {
+					setItems(data);
+				}) //here it re-set the variable tasks with the incoming data
+				.catch(function(error) {
+					console.log(
+						"Hubo un problema con la petición Fetch:" +
+							error.message
+					);
+				}),
+		[]
+	);
+	useEffect(
+		function(element) {
+			fetch("https://assets.breatheco.de/apis/fake/todos/user/Angel3", {
+				method: "PUT",
+				body: JSON.stringify(items),
+				headers: {
+					"Content-type": "application/json"
+				}
+			})
+				.then(response => response.json()) // convert to json
+				.then(data => {
+					console.log(data);
+					setInputValue("");
+				})
+				.catch(err => {
+					console.log("Request Failed", err);
+				}); // Catch errors
+		},
+		[items]
+	);
 	const enviarFormulario = event => {
 		event.preventDefault();
 		if (inputValue !== "") {
-			setItems(items.concat(inputValue));
-			setInputValue("");
+			let tempList = items.concat({
+				label: inputValue,
+				done: false
+			});
+			setItems(tempList);
 		}
 		//console.log("estoy dentro de la funcion");
 	};
 	const removeItem = event => {
 		let liSelected = event.target.parentElement;
-		console.log(event.target.parentElement);
 		let words = liSelected.innerText.split(" ");
 		let value = words[0];
-		setItems(items.filter(item => item !== value));
+		let newItems = items.filter(item => item.label !== value);
+		console.log(newItems);
+		setItems(newItems);
 		//setItems(items.splice(event, 3));
 		//setInputValue("");
 	};
@@ -49,7 +79,7 @@ let TaskList = props => {
 			<ul>
 				{items.map((item, index) => (
 					<li key={index}>
-						{item}{" "}
+						{item.label}{" "}
 						<span onClick={event => removeItem(event)}>X</span>
 					</li>
 				))}
