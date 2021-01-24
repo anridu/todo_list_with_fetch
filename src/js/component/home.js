@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 
-//include images into your bundle
-import rigoImage from "../../img/rigo-baby.jpg";
-
-let TaskList = props => {
+let TaskList = () => {
 	const [items, setItems] = useState([]);
-	let [inputValue, setInputValue] = useState("");
+	const [inputValue, setInputValue] = useState("");
 
 	useEffect(
 		() =>
@@ -24,65 +21,65 @@ let TaskList = props => {
 				}),
 		[]
 	);
+
 	useEffect(
-		function(element) {
+		function() {
 			fetch("https://assets.breatheco.de/apis/fake/todos/user/Angel3", {
 				method: "PUT",
 				body: JSON.stringify(items),
 				headers: {
 					"Content-type": "application/json"
 				}
-			})
-				.then(response => response.json()) // convert to json
-				.then(data => {
-					console.log(data);
-					setInputValue("");
-				})
-				.catch(err => {
-					console.log("Request Failed", err);
-				}); // Catch errors
+			}).catch(err => {
+				console.log("Request Failed", err);
+			}); // Catch errors
 		},
 		[items]
 	);
-	const enviarFormulario = event => {
+
+	const handleSubmit = event => {
 		event.preventDefault();
 		if (inputValue !== "") {
-			let tempList = items.concat({
-				label: inputValue,
-				done: false
-			});
-			setItems(tempList);
+			setItems(
+				items.concat({
+					label: inputValue,
+					done: false
+				})
+			);
 		}
-		//console.log("estoy dentro de la funcion");
+		setInputValue("");
 	};
-	const removeItem = event => {
-		let liSelected = event.target.parentElement;
-		let words = liSelected.innerText.split(" ");
-		let value = words[0];
-		let newItems = items.filter(item => item.label !== value);
-		console.log(newItems);
+	const removeItem = index => {
+		const newItems = [...items];
+		newItems.splice(index, 1);
 		setItems(newItems);
-		//setItems(items.splice(event, 3));
-		//setInputValue("");
 	};
 
 	return (
-		<div>
-			<form onSubmit={event => enviarFormulario(event)}>
+		<div className="list-group-flush m-3">
+			<form onSubmit={event => handleSubmit(event)}>
 				<input
+					className="input"
 					value={inputValue}
-					placeholder={"Fill with the new task"}
+					placeholder={"What needs to be done?"}
 					onChange={e => setInputValue(e.target.value)}
 				/>
 			</form>
 
 			<ul>
 				{items.map((item, index) => (
-					<li key={index}>
+					<li className="list-group-item lead text-left" key={index}>
 						{item.label}{" "}
-						<span onClick={event => removeItem(event)}>X</span>
+						<button
+							className="close"
+							onClick={() => removeItem(index)}>
+							X
+						</button>
 					</li>
 				))}
+				<div className="footer text-left text-muted p-2">
+					<small>{items.length} items left</small>
+				</div>
 			</ul>
 		</div>
 	);
@@ -91,21 +88,11 @@ let TaskList = props => {
 //create your first component
 export function Home() {
 	return (
-		<div className="text-center mt-5">
-			<h1>Hello Rigo!</h1>
-			<p>
-				<img src={rigoImage} />
-			</p>
-
-			<TaskList />
-			<p>
-				Made by{" "}
-				<a href="http://www.4geeksacademy.com">4Geeks Academy</a>, with
-				love!
-			</p>
+		<div className="container text-center mt-5">
+			<h1 className="display-3">Todos</h1>
+			<div className="p-2 lead">
+				<TaskList />
+			</div>
 		</div>
 	);
 }
-TaskList.propTypes = {
-	newElement: PropTypes.string
-};
